@@ -48,7 +48,7 @@ public class GameActivity extends Activity implements RdioListener {
     /** Request code used for startActivityForResult/onActivityResult */
     private static final int REQUEST_AUTHORISE_APP = 100;
 
-    // Dialog codes used for createDialog
+    /** Dialog codes */
     private static final int DIALOG_GETTING_USER = 100;
     private static final int DIALOG_GETTING_COLLECTION = 101;
     private static final int DIALOG_GETTING_HEAVY_ROTATION = 102;
@@ -65,8 +65,7 @@ public class GameActivity extends Activity implements RdioListener {
 	setContentView(R.layout.activity_game);
 	mTrackQueue = new LinkedList<Track>();
 	if (mRdio == null) {
-	    mRdio = new Rdio(DecisongApplication.RDIO_API_KEY,
-		    DecisongApplication.RDIO_SECRET_KEY, null, null, this, this);
+	    mRdio = new Rdio(DecisongApplication.RDIO_API_KEY, DecisongApplication.RDIO_SECRET_KEY, null, null, this, this);
 	}
     }
 
@@ -108,7 +107,7 @@ public class GameActivity extends Activity implements RdioListener {
      */
     @Override
     public void onRdioReady() {
-	Log.i(TAG, "User state is " + mRdio.getSubscriptionState() + " fullstream " + mRdio.canUserPlayFullStreams());
+	Log.i(TAG, "User Subscription State: " + mRdio.getSubscriptionState() + " Fullstream enabled: " + mRdio.canUserPlayFullStreams());
 	playMusic();
     }
 
@@ -155,14 +154,11 @@ public class GameActivity extends Activity implements RdioListener {
     protected Dialog onCreateDialog(int id) {
 	switch (id) {
 	case DIALOG_GETTING_USER:
-	    return ProgressDialog.show(this, "",
-		    getResources().getString(R.string.getting_user));
+	    return ProgressDialog.show(this, "", getResources().getString(R.string.getting_user));
 	case DIALOG_GETTING_COLLECTION:
-	    return ProgressDialog.show(this, "",
-		    getResources().getString(R.string.getting_collection));
+	    return ProgressDialog.show(this, "", getResources().getString(R.string.getting_collection));
 	case DIALOG_GETTING_HEAVY_ROTATION:
-	    return ProgressDialog.show(this, "",
-		    getResources().getString(R.string.getting_heavy_rotation));
+	    return ProgressDialog.show(this, "", getResources().getString(R.string.getting_heavy_rotation));
 	}
 	return null;
     }
@@ -182,7 +178,7 @@ public class GameActivity extends Activity implements RdioListener {
 	// Get the current user so we can find out their user ID and get their
 	// collection key
 	List<NameValuePair> args = new LinkedList<NameValuePair>();
-	args.add(new BasicNameValuePair("extras","followingCount,followerCount,username,displayName,subscriptionType,trialEndDate,actualSubscriptionType"));
+	args.add(new BasicNameValuePair("extras", "followingCount,followerCount,username,displayName,subscriptionType,trialEndDate,actualSubscriptionType"));
 	mRdio.apiCall("currentUser", args, new RdioApiCallback() {
 	    @Override
 	    public void onApiSuccess(JSONObject result) {
@@ -212,111 +208,115 @@ public class GameActivity extends Activity implements RdioListener {
     }
 
     private ArrayList<String> albumKeys;
-    
+
     /**
      * Get Rdio's site-wide heavy rotation and play 30s samples. Doesn't require
      * auth or the Rdio app to be installed
      */
     private void playMusicWithoutApp() {
 
-	// update this to current api
 	showDialog(DIALOG_GETTING_HEAVY_ROTATION);
 
 	List<NameValuePair> args = new LinkedList<NameValuePair>();
 	args.add(new BasicNameValuePair("type", "albums"));
-
-	mRdio.apiCall("getHeavyRotation", args, new RdioApiCallback() {
-	    @Override
-	    public void onApiSuccess(JSONObject result) {
-		try {
-		    Log.i(TAG, "Heavy rotation: " + result.toString(2));
-		    JSONArray albums = result.getJSONArray("result");
-		    final ArrayList<String> albumKeys = new ArrayList<String>(albums.length());
-		    for (int i = 0; i < albums.length(); i++) {
-			JSONObject album = albums.getJSONObject(i);
-			String albumKey = album.getString("key");
-			albumKeys.add(albumKey);
-		    }
-
-		    // Build our argument to pass to the get api
-		    StringBuffer keyBuffer = new StringBuffer();
-		    Iterator<String> iter = albumKeys.iterator();
-		    while (iter.hasNext()) {
-			keyBuffer.append(iter.next());
-			if (iter.hasNext()) {
-			    keyBuffer.append(",");
-			}
-		    }
-		    Log.i(TAG, "Album keys to fetch: " + keyBuffer.toString());
-		    List<NameValuePair> getArgs = new LinkedList<NameValuePair>();
-		    getArgs.add(new BasicNameValuePair("keys", keyBuffer.toString()));
-		    getArgs.add(new BasicNameValuePair("extras", "tracks"));
-
-		    // Get more details (like tracks) for all the albums we
-		    // parsed out of the heavy rotation
-		    mRdio.apiCall("get", getArgs, new RdioApiCallback() {
-
-			@Override
-			public void onApiSuccess(JSONObject result) {
-			    try {
-				Log.i(TAG, "get result: " + result.toString(2));
-				result = result.getJSONObject("result");
-				List<Track> trackKeys = new LinkedList<Track>();
-
-				// Build our list of tracks to put into the player queue
-				for (String albumKey : albumKeys) {
-				    if (!result.has(albumKey)) {
-					Log.w(TAG, "result didn't contain album key: " + albumKey);
-					continue;
-				    }
-				    JSONObject album = result.getJSONObject(albumKey);
-				    JSONArray tracks = album.getJSONArray("tracks");
-				    Log.i(TAG, "album " + albumKey + " has " + tracks.length() + " tracks");
-				    for (int i = 0; i < tracks.length(); i++) {
-					JSONObject trackObject = tracks.getJSONObject(i);
-					String key = trackObject.getString("key");
-					String name = trackObject.getString("name");
-					String artist = trackObject.getString("artist");
-					String albumName = trackObject.getString("album");
-					String albumArt = trackObject.getString("icon");
-					Log.i(TAG, "Found track: " + key + " => " + trackObject.getString("name"));
-					trackKeys.add(new Track(key, name, artist, albumName, albumArt));
-				    }
-				}
-				if (trackKeys.size() > 1) {
-				    mTrackQueue.addAll(trackKeys);
-				}
-				dismissDialog(DIALOG_GETTING_HEAVY_ROTATION);
-
-				// If we're not playing something, then load
-				// something up
-				if (mMediaPlayer == null || !mMediaPlayer.isPlaying()) {
-				    next(true);
-				}
-			    } catch (Exception e) {
-				Log.e(TAG, "Failed to handle JSONObject: ", e);
-			    }
-			}
-
-			@Override
-			public void onApiFailure(String methodName, Exception e) {
-			    Log.e(TAG, "get() failed!", e);
-			}
-		    });
-		} catch (Exception e) {
-		    Log.e(TAG, "Failed to handle JSONObject: ", e);
-		} finally {
-		    dismissDialog(DIALOG_GETTING_HEAVY_ROTATION);
-		}
-	    }
-
-	    @Override
-	    public void onApiFailure(String methodName, Exception e) {
-		dismissDialog(DIALOG_GETTING_HEAVY_ROTATION);
-		Log.e(TAG, "getHeavyRotation failed. ", e);
-	    }
-	});
+	mRdio.apiCall("getHeavyRotation", args, getRotationAlbumsCallback);
     }
+
+    private RdioApiCallback getRotationAlbumsCallback = new RdioApiCallback() {
+	@Override
+	public void onApiSuccess(JSONObject result) {
+	    try {
+		Log.i(TAG, "Heavy rotation: " + result.toString(2));
+		JSONArray albums = result.getJSONArray("result");
+		albumKeys = new ArrayList<String>(albums.length());
+		for (int i = 0; i < albums.length(); i++) {
+		    JSONObject album = albums.getJSONObject(i);
+		    String albumKey = album.getString("key");
+		    albumKeys.add(albumKey);
+		}
+
+		// Build our argument to pass to the get api
+		StringBuffer keyBuffer = new StringBuffer();
+		Iterator<String> iter = albumKeys.iterator();
+		while (iter.hasNext()) {
+		    keyBuffer.append(iter.next());
+		    if (iter.hasNext()) {
+			keyBuffer.append(",");
+		    }
+		}
+		Log.i(TAG, "Album keys to fetch: " + keyBuffer.toString());
+
+		// Get more details (like tracks) for all the albums we parsed
+		// out of the heavy rotation
+		List<NameValuePair> getArgs = new LinkedList<NameValuePair>();
+		getArgs.add(new BasicNameValuePair("keys", keyBuffer.toString()));
+		getArgs.add(new BasicNameValuePair("extras", "tracks"));
+		mRdio.apiCall("get", getArgs, getAllTracksCallback);
+	    } catch (Exception e) {
+		Log.e(TAG, "Failed to handle JSONObject: ", e);
+	    } finally {
+		dismissDialog(DIALOG_GETTING_HEAVY_ROTATION);
+	    }
+	}
+
+	@Override
+	public void onApiFailure(String methodName, Exception e) {
+	    dismissDialog(DIALOG_GETTING_HEAVY_ROTATION);
+	    Log.e(TAG, "getRotationAlbums failed. ", e);
+	    e.printStackTrace();
+	}
+    };
+
+    private RdioApiCallback getAllTracksCallback = new RdioApiCallback() {
+
+	@Override
+	public void onApiSuccess(JSONObject result) {
+	    try {
+		Log.i(TAG, "Tracks result: " + result.toString(2));
+		result = result.getJSONObject("result"); // clever?
+		List<Track> trackKeys = new LinkedList<Track>();
+
+		// Build our list of tracks to put into the player queue
+		for (String albumKey : albumKeys) {
+		    if (!result.has(albumKey)) {
+			Log.w(TAG, "result didn't contain album key: " + albumKey);
+			continue;
+		    }
+		    JSONObject album = result.getJSONObject(albumKey);
+		    JSONArray tracks = album.getJSONArray("tracks");
+		    Log.i(TAG, "Album " + albumKey + " has " + tracks.length() + " tracks");
+		    for (int i = 0; i < tracks.length(); i++) {
+			JSONObject trackObject = tracks.getJSONObject(i);
+			String key = trackObject.getString("key");
+			String name = trackObject.getString("name");
+			String artist = trackObject.getString("artist");
+			String albumName = trackObject.getString("album");
+			String albumArt = trackObject.getString("icon");
+			Log.i(TAG, "Found track: " + key + " => " + trackObject.getString("name"));
+			trackKeys.add(new Track(key, name, artist, albumName, albumArt));
+		    }
+		}
+
+		if (trackKeys.size() > 1) {
+		    mTrackQueue.addAll(trackKeys);
+		}
+		// dismissDialog(DIALOG_GETTING_HEAVY_ROTATION);
+
+		// If we're not playing something, then load something up
+		if (mMediaPlayer == null || !mMediaPlayer.isPlaying()) {
+		    next(true);
+		}
+	    } catch (Exception e) {
+		Log.e(TAG, "Failed to handle JSONObject: ", e);
+	    }
+	}
+
+	@Override
+	public void onApiFailure(String methodName, Exception e) {
+	    Log.e(TAG, "getAllTracks failed. ", e);
+	    e.printStackTrace();
+	}
+    };
 
     private void next(final boolean manualPlay) {
 	if (mMediaPlayer != null) {
@@ -338,7 +338,7 @@ public class GameActivity extends Activity implements RdioListener {
 
 	// Load the next track in the background and prep the player (to start buffering)
 	// Do in a background thread so it doesn't block the main thread in prepare()
-	AsyncTask<Track, Void, Track> task = new AsyncTask<Track, Void, Track>() {
+	AsyncTask<Track, Void, Track> loadTrackAsyncTask = new AsyncTask<Track, Void, Track>() {
 	    @Override
 	    protected Track doInBackground(Track... params) {
 		Track track = params[0];
@@ -364,51 +364,51 @@ public class GameActivity extends Activity implements RdioListener {
 		// updatePlayPause(true);
 	    }
 	};
-	task.execute(track);
+	loadTrackAsyncTask.execute(track);
 
-	// Fetch album art in the background and then update the UI on the main thread
-	AsyncTask<Track, Void, Bitmap> artworkTask = new AsyncTask<Track, Void, Bitmap>() {
-	    @Override
-	    protected Bitmap doInBackground(Track... params) {
-		Track track = params[0];
-		try {
-		    String artworkUrl = track.albumArt.replace("square-200",
-			    "square-600");
-		    Log.i(TAG, "Downloading album art: " + artworkUrl);
-		    Bitmap bm = null;
-		    try {
-			URL aURL = new URL(artworkUrl);
-			URLConnection conn = aURL.openConnection();
-			conn.connect();
-			InputStream is = conn.getInputStream();
-			BufferedInputStream bis = new BufferedInputStream(is);
-			bm = BitmapFactory.decodeStream(bis);
-			bis.close();
-			is.close();
-		    } catch (IOException e) {
-			Log.e(TAG, "Error getting bitmap", e);
-		    }
-		    return bm;
-		} catch (Exception e) {
-		    Log.e(TAG, "Error downloading artwork", e);
-		    return null;
-		}
-	    }
-
-	    @Override
-	    protected void onPostExecute(Bitmap artwork) {
-		// update the artwork once it is fetched...
-		// if (artwork != null) {
-		// albumArt.setImageBitmap(artwork);
-		// } else {
-		// albumArt.setImageResource(R.drawable.blank_album_art);
-		// }
-	    }
-	};
-	artworkTask.execute(track);
+	fetchAlbumArtworkAsyncTask.execute(track);
 
 	Toast.makeText(this, String.format(getResources().getString(R.string.now_playing), track.trackName, track.albumName, track.artistName), Toast.LENGTH_LONG).show();
     }
+
+    // Fetch album art in the background and then update the UI on the main thread
+    private AsyncTask<Track, Void, Bitmap> fetchAlbumArtworkAsyncTask = new AsyncTask<Track, Void, Bitmap>() {
+	@Override
+	protected Bitmap doInBackground(Track... params) {
+	    Track track = params[0];
+	    try {
+		String artworkUrl = track.albumArt.replace("square-200", "square-600");
+		Log.i(TAG, "Downloading album art: " + artworkUrl);
+		Bitmap bm = null;
+		try {
+		    URL aURL = new URL(artworkUrl);
+		    URLConnection conn = aURL.openConnection();
+		    conn.connect();
+		    InputStream is = conn.getInputStream();
+		    BufferedInputStream bis = new BufferedInputStream(is);
+		    bm = BitmapFactory.decodeStream(bis);
+		    bis.close();
+		    is.close();
+		} catch (IOException e) {
+		    Log.e(TAG, "Error getting bitmap", e);
+		}
+		return bm;
+	    } catch (Exception e) {
+		Log.e(TAG, "Error downloading artwork", e);
+		return null;
+	    }
+	}
+
+	@Override
+	protected void onPostExecute(Bitmap artwork) {
+	    // update the artwork once it is fetched...
+	    // if (artwork != null) {
+	    // albumArt.setImageBitmap(artwork);
+	    // } else {
+	    // albumArt.setImageResource(R.drawable.blank_album_art);
+	    // }
+	}
+    };
 
     private void loadMoreTracks() {
 	if (mRdio.getSubscriptionState() == RdioSubscriptionType.ANONYMOUS) {
@@ -431,11 +431,6 @@ public class GameActivity extends Activity implements RdioListener {
 	args.add(new BasicNameValuePair("keys", collectionKey));
 	args.add(new BasicNameValuePair("count", "50"));
 	mRdio.apiCall("get", args, new RdioApiCallback() {
-	    @Override
-	    public void onApiFailure(String methodName, Exception e) {
-		dismissDialog(DIALOG_GETTING_COLLECTION);
-		Log.e(TAG, methodName + " failed: ", e);
-	    }
 
 	    @Override
 	    public void onApiSuccess(JSONObject result) {
@@ -469,6 +464,12 @@ public class GameActivity extends Activity implements RdioListener {
 		    dismissDialog(DIALOG_GETTING_COLLECTION);
 		    Log.e(TAG, "Failed to handle JSONObject: ", e);
 		}
+	    }
+
+	    @Override
+	    public void onApiFailure(String methodName, Exception e) {
+		dismissDialog(DIALOG_GETTING_COLLECTION);
+		Log.e(TAG, methodName + " failed: ", e);
 	    }
 	});
     }
