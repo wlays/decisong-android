@@ -1,28 +1,24 @@
 package com.lays.decisong.activities;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.app.Dialog;
+import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
@@ -33,6 +29,8 @@ import android.widget.Toast;
 
 import com.lays.decisong.DecisongApplication;
 import com.lays.decisong.R;
+import com.lays.decisong.adapters.TracksAdapter;
+import com.lays.decisong.models.Album;
 import com.lays.decisong.models.Track;
 import com.rdio.android.api.Rdio;
 import com.rdio.android.api.RdioApiCallback;
@@ -40,7 +38,7 @@ import com.rdio.android.api.RdioListener;
 import com.rdio.android.api.RdioSubscriptionType;
 import com.rdio.android.api.services.RdioAuthorisationException;
 
-public class GameActivity extends Activity implements RdioListener {
+public class GameActivity extends ListActivity implements RdioListener {
 
     /** Activity tag */
     private static final String TAG = GameActivity.class.getSimpleName();
@@ -58,7 +56,14 @@ public class GameActivity extends Activity implements RdioListener {
     private Queue<Track> mTrackQueue;
     private static Rdio mRdio;
     private static String collectionKey = null;
-
+    
+    /** Game variables */
+    private ArrayList<String> mAllAlbumKeys;
+    private HashMap<String, Album> mAllAlbums;
+    private ArrayList<String> mUnchosenAlbums;
+    private ArrayList<Track> mChosenTracks;
+    private TracksAdapter mAdapter;
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
@@ -67,6 +72,11 @@ public class GameActivity extends Activity implements RdioListener {
 	if (mRdio == null) {
 	    mRdio = new Rdio(DecisongApplication.RDIO_API_KEY, DecisongApplication.RDIO_SECRET_KEY, null, null, this, this);
 	}
+	
+	mAllAlbums = new HashMap<String, Album>();
+	mChosenTracks = new ArrayList<Track>();
+	mAdapter = new TracksAdapter(this, mChosenTracks);
+	setListAdapter(mAdapter);
     }
 
     @Override
@@ -207,8 +217,6 @@ public class GameActivity extends Activity implements RdioListener {
 	});
     }
 
-    private ArrayList<String> albumKeys;
-
     /**
      * Get Rdio's site-wide heavy rotation and play 30s samples. Doesn't require
      * auth or the Rdio app to be installed
@@ -228,16 +236,16 @@ public class GameActivity extends Activity implements RdioListener {
 	    try {
 		Log.i(TAG, "Heavy rotation: " + result.toString(2));
 		JSONArray albums = result.getJSONArray("result");
-		albumKeys = new ArrayList<String>(albums.length());
+		mAllAlbumKeys = new ArrayList<String>(albums.length());
 		for (int i = 0; i < albums.length(); i++) {
 		    JSONObject album = albums.getJSONObject(i);
 		    String albumKey = album.getString("key");
-		    albumKeys.add(albumKey);
+		    mAllAlbumKeys.add(albumKey);
 		}
 
 		// Build our argument to pass to the get api
 		StringBuffer keyBuffer = new StringBuffer();
-		Iterator<String> iter = albumKeys.iterator();
+		Iterator<String> iter = mAllAlbumKeys.iterator();
 		while (iter.hasNext()) {
 		    keyBuffer.append(iter.next());
 		    if (iter.hasNext()) {
@@ -275,16 +283,18 @@ public class GameActivity extends Activity implements RdioListener {
 		Log.i(TAG, "Tracks result: " + result.toString(2));
 		result = result.getJSONObject("result"); // clever?
 		List<Track> trackKeys = new LinkedList<Track>();
-
+		
 		// Build our list of tracks to put into the player queue
-		for (String albumKey : albumKeys) {
+		for (String albumKey : mAllAlbumKeys) {
 		    if (!result.has(albumKey)) {
 			Log.w(TAG, "result didn't contain album key: " + albumKey);
 			continue;
 		    }
-		    JSONObject album = result.getJSONObject(albumKey);
-		    JSONArray tracks = album.getJSONArray("tracks");
+		    JSONObject jAlbum = result.getJSONObject(albumKey);
+		    JSONArray tracks = jAlbum.getJSONArray("tracks");
 		    Log.i(TAG, "Album " + albumKey + " has " + tracks.length() + " tracks");
+		    Album album = new Album(albumKey, tracks.length());
+		    
 		    for (int i = 0; i < tracks.length(); i++) {
 			JSONObject trackObject = tracks.getJSONObject(i);
 			String key = trackObject.getString("key");
@@ -293,11 +303,17 @@ public class GameActivity extends Activity implements RdioListener {
 			String albumName = trackObject.getString("album");
 			String albumArt = trackObject.getString("icon");
 			Log.i(TAG, "Found track: " + key + " => " + trackObject.getString("name"));
-			trackKeys.add(new Track(key, name, artist, albumName, albumArt));
+			Track t = new Track(key, name, artist, albumName, albumArt, albumKey);
+			trackKeys.add(t);
+			
+			album.trackKeys[i] = key;
+			album.tracks.put(key, t);
 		    }
+		    mAllAlbums.put(albumKey, album);
 		}
 
 		if (trackKeys.size() > 1) {
+		    Collections.shuffle(trackKeys);
 		    mTrackQueue.addAll(trackKeys);
 		}
 		// dismissDialog(DIALOG_GETTING_HEAVY_ROTATION);
@@ -360,56 +376,41 @@ public class GameActivity extends Activity implements RdioListener {
 
 	    @Override
 	    protected void onPostExecute(Track track) {
-		// updates the ui to reflect that the track is playing
-		// updatePlayPause(true);
+		resetUnchosenAlbums(); // reset our previously mUnchosenAlbums
+		mChosenTracks.clear(); // clear our previously chosen tracks
+		mChosenTracks.add(track); // add track to arraylist of tracks
+		mUnchosenAlbums.remove(track.albumKey); // remove the chosen track's album's key first
+		addRandomTracks(new Random()); // add our random tracks recursively
+		Collections.shuffle(mChosenTracks); // shuffle our mutliple choices
+		mAdapter.notifyDataSetChanged(); // notify adapter data set changed
 	    }
 	};
 	loadTrackAsyncTask.execute(track);
 
-	fetchAlbumArtworkAsyncTask.execute(track);
-
 	Toast.makeText(this, String.format(getResources().getString(R.string.now_playing), track.trackName, track.albumName, track.artistName), Toast.LENGTH_LONG).show();
     }
 
-    // Fetch album art in the background and then update the UI on the main thread
-    private AsyncTask<Track, Void, Bitmap> fetchAlbumArtworkAsyncTask = new AsyncTask<Track, Void, Bitmap>() {
-	@Override
-	protected Bitmap doInBackground(Track... params) {
-	    Track track = params[0];
-	    try {
-		String artworkUrl = track.albumArt.replace("square-200", "square-600");
-		Log.i(TAG, "Downloading album art: " + artworkUrl);
-		Bitmap bm = null;
-		try {
-		    URL aURL = new URL(artworkUrl);
-		    URLConnection conn = aURL.openConnection();
-		    conn.connect();
-		    InputStream is = conn.getInputStream();
-		    BufferedInputStream bis = new BufferedInputStream(is);
-		    bm = BitmapFactory.decodeStream(bis);
-		    bis.close();
-		    is.close();
-		} catch (IOException e) {
-		    Log.e(TAG, "Error getting bitmap", e);
-		}
-		return bm;
-	    } catch (Exception e) {
-		Log.e(TAG, "Error downloading artwork", e);
-		return null;
-	    }
+    private void resetUnchosenAlbums() {
+	mUnchosenAlbums = new ArrayList<String>(mAllAlbumKeys.size());
+	for (String key : mAllAlbumKeys) {
+	    mUnchosenAlbums.add(key);
 	}
-
-	@Override
-	protected void onPostExecute(Bitmap artwork) {
-	    // update the artwork once it is fetched...
-	    // if (artwork != null) {
-	    // albumArt.setImageBitmap(artwork);
-	    // } else {
-	    // albumArt.setImageResource(R.drawable.blank_album_art);
-	    // }
+    }
+    
+    private void addRandomTracks(Random r) {
+	if (mChosenTracks.size() > 2) {
+	    return;
+	} else {
+	    // find an unchosen random album
+	    String key = mUnchosenAlbums.remove(r.nextInt(mUnchosenAlbums.size()));
+	    // find a random track on those albums
+	    Track randomTrack = mAllAlbums.get(key).getRandomTrack();
+	    // add it to Activity's arraylist
+	    mChosenTracks.add(randomTrack);
+	    addRandomTracks(r);
 	}
-    };
-
+    }
+    
     private void loadMoreTracks() {
 	if (mRdio.getSubscriptionState() == RdioSubscriptionType.ANONYMOUS) {
 	    Log.i(TAG, "Anonymous user! No more tracks to play.");
@@ -446,11 +447,8 @@ public class GameActivity extends Activity implements RdioListener {
 			String artist = trackObject.getString("artist");
 			String album = trackObject.getString("album");
 			String albumArt = trackObject.getString("icon");
-			Log.d(TAG,
-				"Found track: " + key + " => "
-					+ trackObject.getString("name"));
-			trackKeys.add(new Track(key, name, artist, album,
-				albumArt));
+			Log.d(TAG, "Found track: " + key + " => " + trackObject.getString("name"));
+			trackKeys.add(new Track(key, name, artist, album, albumArt, null)); // TODO potential danger
 		    }
 		    if (trackKeys.size() > 1)
 			mTrackQueue.addAll(trackKeys);

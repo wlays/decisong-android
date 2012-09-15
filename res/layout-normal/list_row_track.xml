@@ -5,8 +5,8 @@
     android:background="@drawable/bg_list_row_rdio"
     android:padding="13dp" >
 
-    <ImageView
-        android:id="@+id/album_art"
+    <com.loopj.android.image.SmartImageView
+        android:id="@+id/row_album_art"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_centerVertical="true"
@@ -19,12 +19,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="26dp"
-        android:layout_toRightOf="@+id/album_art"
+        android:layout_marginLeft="13dp"
+        android:layout_toRightOf="@+id/row_album_art"
         android:orientation="vertical" >
 
         <TextView
-            android:id="@+id/album_artist"
+            android:id="@+id/row_album_artist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -33,7 +33,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/album_name"
+            android:id="@+id/row_album_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/example"

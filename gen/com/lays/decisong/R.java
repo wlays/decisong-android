@@ -72,17 +72,17 @@ public final class R {
         public static final int ic_menu_close_clear_cancel=0x7f020006;
     }
     public static final class id {
-        public static final int album_art=0x7f08000b;
-        public static final int album_artist=0x7f08000c;
-        public static final int album_name=0x7f08000d;
         public static final int auto_complete_player_input=0x7f080003;
         public static final int btn_done=0x7f080004;
         public static final int btn_instructions=0x7f080006;
         public static final int btn_new_game=0x7f080007;
         public static final int btn_settings=0x7f080008;
         public static final int current_player=0x7f080001;
+        public static final int current_round=0x7f080000;
         public static final int decisong_title=0x7f080005;
-        public static final int player_header=0x7f080000;
+        public static final int row_album_art=0x7f08000b;
+        public static final int row_album_artist=0x7f08000c;
+        public static final int row_album_name=0x7f08000d;
         public static final int row_player_cancel=0x7f08000a;
         public static final int row_player_name=0x7f080009;
         public static final int timer=0x7f080002;
@@ -94,23 +94,24 @@ public final class R {
         public static final int activity_main=0x7f030003;
         public static final int activity_settings=0x7f030004;
         public static final int list_row_player=0x7f030005;
-        public static final int list_row_rdio=0x7f030006;
+        public static final int list_row_track=0x7f030006;
     }
     public static final class string {
         public static final int app_name=0x7f060000;
-        public static final int autocomplete_hint=0x7f060006;
-        public static final int btn_done=0x7f060005;
-        public static final int btn_instructions=0x7f060002;
-        public static final int btn_new_game=0x7f060003;
-        public static final int btn_settings=0x7f060004;
+        public static final int autocomplete_hint=0x7f060007;
+        public static final int btn_done=0x7f060006;
+        public static final int btn_instructions=0x7f060003;
+        public static final int btn_new_game=0x7f060004;
+        public static final int btn_settings=0x7f060005;
         public static final int example=0x7f060001;
-        public static final int getting_collection=0x7f06000a;
-        public static final int getting_heavy_rotation=0x7f06000b;
-        public static final int getting_user=0x7f060009;
-        public static final int no_more_tracks=0x7f06000d;
-        public static final int now_playing=0x7f06000c;
-        public static final int player=0x7f060007;
-        public static final int timer=0x7f060008;
+        public static final int example_round=0x7f060002;
+        public static final int getting_collection=0x7f06000b;
+        public static final int getting_heavy_rotation=0x7f06000c;
+        public static final int getting_user=0x7f06000a;
+        public static final int no_more_tracks=0x7f06000e;
+        public static final int now_playing=0x7f06000d;
+        public static final int player=0x7f060008;
+        public static final int timer=0x7f060009;
     }
     public static final class style {
         public static final int AppTheme=0x7f070003;

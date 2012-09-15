@@ -8,12 +8,14 @@ public class Track {
     public String artistName;
     public String albumName;
     public String albumArt;
+    public String albumKey;
 
-    public Track(String k, String name, String artist, String album, String uri) {
+    public Track(String k, String name, String artist, String album, String uri, String aKey) {
 	key = k;
 	trackName = name;
 	artistName = artist;
 	albumName = album;
 	albumArt = uri;
+	albumKey = aKey;
     }
 }

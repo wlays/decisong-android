@@ -2,6 +2,7 @@
 
     <string name="app_name">Decisong</string>
     <string name="example">Example</string>
+    <string name="example_round">Round 1</string>
     <string name="btn_instructions">How To Play</string>
     <string name="btn_new_game">New Game</string>
     <string name="btn_settings">Settings</string>
