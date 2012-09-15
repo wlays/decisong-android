@@ -1,0 +1,52 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_activity" >
+
+    <TextView
+        android:id="@+id/decisong_title"
+        style="@style/DecisongTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btn_instructions"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:text="@string/app_name" />
+
+    <Button
+        android:id="@+id/btn_instructions"
+        style="@style/DecisongButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btn_new_game"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="18dp"
+        android:onClick="startInstructionsActivity"
+        android:text="@string/btn_instructions" />
+
+    <Button
+        android:id="@+id/btn_new_game"
+        style="@style/DecisongButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/btn_instructions"
+        android:layout_alignRight="@+id/btn_instructions"
+        android:layout_centerVertical="true"
+        android:layout_marginBottom="18dp"
+        android:onClick="startGameActivity"
+        android:text="@string/btn_new_game" />
+
+    <Button
+        android:id="@+id/btn_settings"
+        style="@style/DecisongButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/btn_new_game"
+        android:layout_alignRight="@+id/btn_new_game"
+        android:layout_below="@+id/btn_new_game"
+        android:onClick="startSettingsActivity"
+        android:text="@string/btn_settings" />
+
+</RelativeLayout>

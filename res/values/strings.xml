@@ -1,0 +1,18 @@
+<resources>
+
+    <string name="app_name">Decisong</string>
+    <string name="example">Example</string>
+    <string name="btn_instructions">How To Play</string>
+    <string name="btn_new_game">New Game</string>
+    <string name="btn_settings">Settings</string>
+    <string name="btn_done">Start Game</string>
+	<string name="autocomplete_hint">Type to add players&#8230;</string>
+	<string name="player">Current Player</string>
+    <string name="timer">Time Left:</string>
+    <string name="getting_user">Looking up current user&#8230;</string>
+    <string name="getting_collection">Loading collection&#8230;</string>
+    <string name="getting_heavy_rotation">Loading Rdio heavy rotation&#8230;</string>
+    <string name="now_playing">Playing: %1$s from %2$s by %3$s</string>
+	<string name="no_more_tracks">Heavy rotation depleted&#8230; why not go install the Rdio app now?</string>
+	
+</resources>
