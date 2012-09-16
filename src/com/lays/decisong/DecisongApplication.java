@@ -1,21 +1,21 @@
 package com.lays.decisong;
 
+import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.StrictMode;
 import android.util.Log;
 
-import com.activeandroid.app.Application;
-
 public class DecisongApplication extends Application {
 
     private static final String TAG = DecisongApplication.class.getSimpleName();
     public static final boolean DEVELOPER_MODE = true;
+
+    public static final String PLAYERS_KEY = "players";
     
     public static final String RDIO_API_KEY = "pqqa7fv8egyhz6dskr8sc2uh";
     public static final String RDIO_SECRET_KEY = "Nqp6nvBj94";
-    
     
     private static DecisongApplication mInstance;
     

@@ -6,6 +6,7 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
+import com.lays.decisong.DecisongApplication;
 import com.lays.decisong.R;
 import com.lays.decisong.adapters.PlayersAdapter;
 import com.lays.decisong.models.Player;
@@ -71,7 +73,6 @@ public class InputActivity extends ListActivity implements OnClickListener {
     @Override
     public void onBackPressed() {
 	super.onBackPressed();
-	Player.deleteAll();
 	overridePendingTransition(R.anim.slide_down_incoming, R.anim.slide_down_outgoing);
     }
 
@@ -83,11 +84,21 @@ public class InputActivity extends ListActivity implements OnClickListener {
     public void startGame(View v) {
 	// check if there's more than one player
 	if (mPlayers.size() < 2) {
+	    Log.i(TAG, "Only 1 player");
 	    Toast.makeText(mContext, "At least 2 players needed to start game", Toast.LENGTH_SHORT).show();
 	    return;
 	}
 
-	startActivity(new Intent(this, GameActivity.class));
+	String[] players = new String[mPlayers.size()];
+	for (int i = 0; i < mPlayers.size(); i++) {
+	    players[i] = mPlayers.get(i).name;
+	}
+	
+	Bundle extras = new Bundle();
+	extras.putStringArray(DecisongApplication.PLAYERS_KEY, players);
+	Intent intent = new Intent(this, GameActivity.class);
+	intent.putExtras(extras);
+	startActivity(intent);
 	overridePendingTransition(R.anim.slide_up_incoming, R.anim.slide_up_outgoing);
     }
 
@@ -97,7 +108,6 @@ public class InputActivity extends ListActivity implements OnClickListener {
 	case R.id.row_player_cancel:
 	    int positionToBeRemoved = ((Integer) v.getTag()).intValue();
 	    Player player = mAdapter.getItem(positionToBeRemoved);
-	    player.delete();
 	    mAdapter.remove(player);
 	    break;
 	}
