@@ -13,18 +13,19 @@ import com.lays.decisong.R;
  */
 public class SettingsActivity extends Activity {
 
-    /** Activity tag */
-    private static final String TAG = SettingsActivity.class.getSimpleName();
-    
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-	super.onCreate(savedInstanceState);
-	setContentView(R.layout.activity_settings);
-    }
-    
-    @Override
-    public void onBackPressed() {
-	super.onBackPressed();
-	overridePendingTransition(R.anim.slide_right_incoming, R.anim.slide_right_outgoing);
-    }
+	/** Activity tag */
+	private static final String TAG = SettingsActivity.class.getSimpleName();
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_settings);
+	}
+
+	@Override
+	public void onBackPressed() {
+		super.onBackPressed();
+		overridePendingTransition(R.anim.slide_right_incoming,
+				R.anim.slide_right_outgoing);
+	}
 }

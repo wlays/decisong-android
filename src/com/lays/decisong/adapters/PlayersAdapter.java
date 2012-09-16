@@ -10,9 +10,8 @@ import android.widget.ArrayAdapter;
 import com.lays.decisong.R;
 import com.lays.decisong.activities.InputActivity;
 import com.lays.decisong.holders.PlayerViewHolder;
-import com.lays.decisong.models.Player;
 
-public class PlayersAdapter extends ArrayAdapter<Player> {
+public class PlayersAdapter extends ArrayAdapter<String> {
 
     /** Associated InputActivity */
     private InputActivity mActivity;
@@ -21,9 +20,9 @@ public class PlayersAdapter extends ArrayAdapter<Player> {
     private static LayoutInflater mInflater;
 
     /** List of our mArticles objects */
-    private ArrayList<Player> mPlayers;
+    private ArrayList<String> mPlayers;
 
-    public PlayersAdapter(InputActivity activity, ArrayList<Player> players) {
+    public PlayersAdapter(InputActivity activity, ArrayList<String> players) {
 	super(activity, R.layout.list_row_player, players);
 	mActivity = activity;
 	mInflater = activity.getLayoutInflater();
@@ -45,8 +44,7 @@ public class PlayersAdapter extends ArrayAdapter<Player> {
 	    row.setTag(holder);
 	}
 
-	Player month = mPlayers.get(position);
-	holder.getName().setText(month.name);
+	holder.getName().setText(mPlayers.get(position));
 	holder.getCancel().setOnClickListener(mActivity);
 	holder.getCancel().setTag(position);
 	return row;
