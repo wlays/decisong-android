@@ -2,8 +2,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
-    
-   
+    android:background="@drawable/bg_activity"
+    android:orientation="vertical"
+    android:padding="15dp" >
+
+    <TextView
+        style="@style/DecisongInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="15dp"
+        android:layout_weight="1"
+        android:text="@string/instruction_one" />
+
+    <TextView
+        style="@style/DecisongInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="15dp"
+        android:layout_weight="1"
+        android:text="@string/instruction_two" />
+
+    <TextView
+        style="@style/DecisongInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="15dp"
+        android:layout_weight="1"
+        android:text="@string/instruction_three" />
+
+    <TextView
+        style="@style/DecisongInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="15dp"
+        android:layout_weight="1"
+        android:text="@string/instruction_four" />
+
+    <TextView
+        style="@style/DecisongInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="@string/instruction_five" />
 
 </LinearLayout>

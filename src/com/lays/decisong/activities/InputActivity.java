@@ -2,10 +2,13 @@ package com.lays.decisong.activities;
 
 import java.util.ArrayList;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -45,7 +48,8 @@ public class InputActivity extends ListActivity implements OnClickListener {
 		mListView = getListView();
 		mInput = (AutoCompleteTextView) findViewById(R.id.auto_complete_player_input);
 		mInput.setOnEditorActionListener(new OnEditorActionListener() {
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+			public boolean onEditorAction(TextView v, int actionId,
+					KeyEvent event) {
 				if (actionId == EditorInfo.IME_ACTION_DONE) {
 					// check that text is valid
 					String temp = mInput.getText().toString();
@@ -56,7 +60,9 @@ public class InputActivity extends ListActivity implements OnClickListener {
 						mInput.setText("");
 						return true;
 					} else {
-						Toast.makeText(InputActivity.this, "Invalid Player Name", Toast.LENGTH_SHORT).show();
+						Toast.makeText(InputActivity.this,
+								"Invalid Player Name", Toast.LENGTH_SHORT)
+								.show();
 					}
 				}
 				return false;
@@ -70,8 +76,8 @@ public class InputActivity extends ListActivity implements OnClickListener {
 
 	public void onBackPressed() {
 		super.onBackPressed();
-		overridePendingTransition(R.anim.slide_down_incoming,
-				R.anim.slide_down_outgoing);
+		overridePendingTransition(R.anim.slide_right_incoming,
+				R.anim.slide_right_outgoing);
 	}
 
 	/**
@@ -80,20 +86,50 @@ public class InputActivity extends ListActivity implements OnClickListener {
 	 * @param v
 	 */
 	public void startGame(View v) {
-		// check if there's more than one player
+		// if there's more than one player: continue game
 		if (mPlayers.size() < 2) {
 			Log.i(TAG, "Only 1 player");
-			Toast.makeText(this, "At least 2 players needed to start game",Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "At least 2 players needed to start game",
+					Toast.LENGTH_SHORT).show();
 			return;
 		}
 
-		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		// hide soft keyboard
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(mInput.getWindowToken(), 0);
-		
-		Intent intent = new Intent(this, GameActivity.class);
-		intent.putStringArrayListExtra(DecisongApplication.PLAYERS_KEY, mPlayers);
-		startActivity(intent);
-		overridePendingTransition(R.anim.slide_up_incoming, R.anim.slide_up_outgoing);
+
+		if (checkConnectivity()) {
+			// wireless connection is available: start game
+			finish();
+			Intent intent = new Intent(this, GameActivity.class);
+			intent.putStringArrayListExtra(DecisongApplication.PLAYERS_KEY,
+					mPlayers);
+			startActivity(intent);
+			overridePendingTransition(R.anim.slide_left_incoming,
+					R.anim.slide_left_outgoing);
+		} else {
+			// wireless connection is unavailable: tell user
+			new AlertDialog.Builder(this)
+					.setIcon(R.drawable.ic_dialog_alert)
+					.setTitle(R.string.connectivity_dialog_title)
+					.setMessage(R.string.connectivity_dialog_text)
+					.setPositiveButton(R.string.connectivity_dialog_settings,
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									startActivity(new Intent(
+											Settings.ACTION_WIFI_SETTINGS)); // wireless
+																				// settings
+								}
+							})
+					.setNegativeButton(R.string.connectivity_dialog_exit,
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									finish(); // exit input activity
+								}
+							}).create().show();
+		}
 	}
 
 	public void onClick(View v) {
@@ -103,5 +139,14 @@ public class InputActivity extends ListActivity implements OnClickListener {
 			mAdapter.remove(mAdapter.getItem(positionToBeRemoved));
 			break;
 		}
+	}
+
+	/**
+	 * Checks if data connection is available
+	 * 
+	 * @return boolean
+	 */
+	private boolean checkConnectivity() {
+		return ((DecisongApplication) getApplication()).isOnline();
 	}
 }

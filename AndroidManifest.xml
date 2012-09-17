@@ -42,6 +42,7 @@
             android:noHistory="true" />
         <activity
             android:name=".activities.GameActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:noHistory="true" />
     </application>
 

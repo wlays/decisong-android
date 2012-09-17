@@ -2,6 +2,7 @@ package com.lays.decisong.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.lays.decisong.R;
 
@@ -20,12 +21,12 @@ public class SettingsActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_settings);
+		Log.i(TAG, "for future settings...");
 	}
 
 	@Override
 	public void onBackPressed() {
 		super.onBackPressed();
-		overridePendingTransition(R.anim.slide_right_incoming,
-				R.anim.slide_right_outgoing);
+		overridePendingTransition(R.anim.slide_right_incoming, R.anim.slide_right_outgoing);
 	}
 }

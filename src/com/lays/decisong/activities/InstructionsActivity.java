@@ -13,9 +13,6 @@ import com.lays.decisong.R;
  */
 public class InstructionsActivity extends Activity {
 
-	/** Activity tag */
-	private static final String TAG = InstructionsActivity.class.getSimpleName();
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

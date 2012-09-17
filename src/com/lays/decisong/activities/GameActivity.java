@@ -20,12 +20,14 @@ import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -42,11 +44,10 @@ import com.lays.decisong.models.Player;
 import com.lays.decisong.models.Track;
 import com.rdio.android.api.Rdio;
 import com.rdio.android.api.RdioApiCallback;
-import com.rdio.android.api.RdioListener;
 import com.rdio.android.api.RdioSubscriptionType;
 import com.rdio.android.api.services.RdioAuthorisationException;
 
-public class GameActivity extends ListActivity implements RdioListener {
+public class GameActivity extends ListActivity {
 
 	/** Activity tag */
 	private static final String TAG = GameActivity.class.getSimpleName();
@@ -55,15 +56,17 @@ public class GameActivity extends ListActivity implements RdioListener {
 	private static final int REQUEST_AUTHORISE_APP = 100;
 
 	/** ProgressDialogs */
-	private static ProgressDialog mGettingCollectionDialog;
-	private static ProgressDialog mGettingUserDialog;
-	private static ProgressDialog mGettingRotationDialog;
+	private ProgressDialog mGettingCollectionDialog;
+	private ProgressDialog mGettingUserDialog;
+	private ProgressDialog mGettingRotationDialog;
 
 	/** Rdio variables */
+	private RdioApiCallback mRotationAlbumsCallback;
+	private RdioApiCallback mAllTracksCallback;
 	private MediaPlayer mMediaPlayer;
 	private Queue<Track> mTrackQueue;
-	private static Rdio mRdio;
-	private static String collectionKey;
+	private Rdio mRdio;
+	private String collectionKey;
 
 	/** Quiz variables */
 	private ListView mListView;
@@ -95,8 +98,7 @@ public class GameActivity extends ListActivity implements RdioListener {
 		// init rdio variables
 		mTrackQueue = new LinkedList<Track>();
 		if (mRdio == null) {
-			mRdio = new Rdio(DecisongApplication.RDIO_API_KEY,
-					DecisongApplication.RDIO_SECRET_KEY, null, null, this, this);
+			mRdio = ((DecisongApplication) getApplication()).setupGame(this);
 		}
 
 		// init quiz variables
@@ -125,9 +127,21 @@ public class GameActivity extends ListActivity implements RdioListener {
 		// setup game conditions
 		Collections.shuffle(mPlayers);
 		mCurrentPlayerView.setText(mPlayers.get(mCurrentPlayer).name);
+
+		// check if rdio object already exists
+		SharedPreferences preferences = PreferenceManager
+				.getDefaultSharedPreferences(getApplicationContext());
+		if (preferences.getBoolean(DecisongApplication.RDIO_KEY, false)) {
+			onRdioReady();
+		}
 	}
 
 	public void onDestroy() {
+		cleanUpResources();
+		super.onDestroy();
+	}
+
+	public void cleanUpResources() {
 		// Make sure to call the cleanup method on the API object
 		mRdio.cleanup();
 		// If we allocated a player, then cleanup after it
@@ -136,21 +150,6 @@ public class GameActivity extends ListActivity implements RdioListener {
 			mMediaPlayer.release();
 			mMediaPlayer = null;
 		}
-		super.onDestroy();
-	}
-
-	/*
-	 * Dispatched by the Rdio object once the setTokenAndSecret call has
-	 * finished, and the credentials are ready to be used to make API calls. The
-	 * token & token secret are passed in so that you can save/cache them for
-	 * future re-use.
-	 * 
-	 * @see com.rdio.android.api.RdioListener#onRdioAuthorised(java.lang.String,
-	 * java.lang.String)
-	 */
-	public void onRdioAuthorised(String accessToken, String accessTokenSecret) {
-		// TODO save accessToken and Secret in user preferences
-		playMusic();
 	}
 
 	/*
@@ -162,7 +161,8 @@ public class GameActivity extends ListActivity implements RdioListener {
 	 * @see com.rdio.android.api.RdioListener#onRdioReady()
 	 */
 	public void onRdioReady() {
-		Log.i(TAG, "User Subscription State: " + mRdio.getSubscriptionState() + " Fullstream enabled: " + mRdio.canUserPlayFullStreams());
+		Log.i(TAG, "User Subscription State: " + mRdio.getSubscriptionState()
+				+ " Fullstream enabled: " + mRdio.canUserPlayFullStreams());
 		playMusic();
 	}
 
@@ -181,6 +181,20 @@ public class GameActivity extends ListActivity implements RdioListener {
 			// Rdio app not found
 			Log.e(TAG, "Rdio app not found, limited to 30s samples.");
 		}
+	}
+
+	/*
+	 * Dispatched by the Rdio object once the setTokenAndSecret call has
+	 * finished, and the credentials are ready to be used to make API calls. The
+	 * token & token secret are passed in so that you can save/cache them for
+	 * future re-use.
+	 * 
+	 * @see com.rdio.android.api.RdioListener#onRdioAuthorised(java.lang.String,
+	 * java.lang.String)
+	 */
+	public void onRdioAuthorised(String accessToken, String accessTokenSecret) {
+		// TODO save accessToken and Secret in user preferences
+		playMusic();
 	}
 
 	public void onRdioUserPlayingElsewhere() {
@@ -212,12 +226,16 @@ public class GameActivity extends ListActivity implements RdioListener {
 			return;
 		}
 
-		mGettingUserDialog = ProgressDialog.show(this, "", getString(R.string.loading), true);
+		mGettingUserDialog = ProgressDialog.show(this, "",
+				getString(R.string.loading), true);
 		mGettingUserDialog.show();
 
-		// Get the current user so we can find out their user ID and get their collection key
+		// Get the current user so we can find out their user ID and get their
+		// collection key
 		List<NameValuePair> args = new LinkedList<NameValuePair>();
-		args.add(new BasicNameValuePair("extras", "followingCount,followerCount,username,displayName,subscriptionType,trialEndDate,actualSubscriptionType"));
+		args.add(new BasicNameValuePair(
+				"extras",
+				"followingCount,followerCount,username,displayName,subscriptionType,trialEndDate,actualSubscriptionType"));
 		mRdio.apiCall("currentUser", args, new RdioApiCallback() {
 			public void onApiSuccess(JSONObject result) {
 				mGettingUserDialog.dismiss();
@@ -251,116 +269,130 @@ public class GameActivity extends ListActivity implements RdioListener {
 	 */
 	private void playMusicWithoutApp() {
 
-		mGettingRotationDialog = ProgressDialog.show(this, "", getString(R.string.loading), true);
+		mGettingRotationDialog = ProgressDialog.show(this, "",
+				getString(R.string.loading), true);
 		mGettingRotationDialog.show();
 
 		List<NameValuePair> args = new LinkedList<NameValuePair>();
 		args.add(new BasicNameValuePair("type", "albums"));
-		mRdio.apiCall("getHeavyRotation", args, getRotationAlbumsCallback);
+		initRotationCallback();
+		mRdio.apiCall("getHeavyRotation", args, mRotationAlbumsCallback);
 	}
 
-	private RdioApiCallback getRotationAlbumsCallback = new RdioApiCallback() {
-		public void onApiSuccess(JSONObject result) {
-			try {
-				// Log.i(TAG, "Heavy rotation: " + result.toString(2));
-				JSONArray albums = result.getJSONArray("result");
-				mAllAlbumKeys = new ArrayList<String>(albums.length());
-				for (int i = 0; i < albums.length(); i++) {
-					JSONObject album = albums.getJSONObject(i);
-					String albumKey = album.getString("key");
-					mAllAlbumKeys.add(albumKey);
-				}
-
-				// Build our argument to pass to the get api
-				StringBuffer keyBuffer = new StringBuffer();
-				Iterator<String> iter = mAllAlbumKeys.iterator();
-				while (iter.hasNext()) {
-					keyBuffer.append(iter.next());
-					if (iter.hasNext()) {
-						keyBuffer.append(",");
+	private void initRotationCallback() {
+		mRotationAlbumsCallback = new RdioApiCallback() {
+			public void onApiSuccess(JSONObject result) {
+				try {
+					// Log.i(TAG, "Heavy rotation: " + result.toString(2));
+					JSONArray albums = result.getJSONArray("result");
+					mAllAlbumKeys = new ArrayList<String>(albums.length());
+					for (int i = 0; i < albums.length(); i++) {
+						JSONObject album = albums.getJSONObject(i);
+						String albumKey = album.getString("key");
+						mAllAlbumKeys.add(albumKey);
 					}
-				}
-				// Log.i(TAG, "Album keys to fetch: " + keyBuffer.toString());
 
-				// Get more details (like tracks) for all the albums we parsed out of the heavy rotation
-				List<NameValuePair> getArgs = new LinkedList<NameValuePair>();
-				getArgs.add(new BasicNameValuePair("keys", keyBuffer.toString()));
-				getArgs.add(new BasicNameValuePair("extras", "tracks"));
-				mRdio.apiCall("get", getArgs, getAllTracksCallback);
-			} catch (Exception e) {
-				mGettingRotationDialog.dismiss();
-				Log.e(TAG, "Failed to handle JSONObject: ", e);
-			}
-		}
-
-		public void onApiFailure(String methodName, Exception e) {
-			mGettingRotationDialog.dismiss();
-			Log.e(TAG, "getRotationAlbums failed. ", e);
-			e.printStackTrace();
-		}
-	};
-
-	private RdioApiCallback getAllTracksCallback = new RdioApiCallback() {
-
-		public void onApiSuccess(JSONObject result) {
-			try {
-				// (TAG, "Tracks result: " + result.toString(2));
-				result = result.getJSONObject("result"); // clever?
-				List<Track> trackKeys = new LinkedList<Track>();
-
-				// Build our list of tracks to put into the player queue
-				for (String albumKey : mAllAlbumKeys) {
-					if (!result.has(albumKey)) {
-						Log.w(TAG, "result didn't contain album key: " + albumKey);
-						continue;
+					// Build our argument to pass to the get api
+					StringBuffer keyBuffer = new StringBuffer();
+					Iterator<String> iter = mAllAlbumKeys.iterator();
+					while (iter.hasNext()) {
+						keyBuffer.append(iter.next());
+						if (iter.hasNext()) {
+							keyBuffer.append(",");
+						}
 					}
-					JSONObject jAlbum = result.getJSONObject(albumKey);
-					JSONArray tracks = jAlbum.getJSONArray("tracks");
-					Log.i(TAG, "Album " + albumKey + " has " + tracks.length() + " tracks");
-					Album album = new Album(albumKey, tracks.length());
+					// Log.i(TAG, "Album keys to fetch: " +
+					// keyBuffer.toString());
 
-					for (int i = 0; i < tracks.length(); i++) {
-						JSONObject trackObject = tracks.getJSONObject(i);
-						String key = trackObject.getString("key");
-						String name = trackObject.getString("name");
-						String artist = trackObject.getString("artist");
-						String albumName = trackObject.getString("album");
-						String albumArt = trackObject.getString("icon");
-						// Log.i(TAG, "Found track: " + key + " => " + trackObject.getString("name"));
-						Track t = new Track(key, name, artist, albumName, albumArt, albumKey);
-						trackKeys.add(t);
-
-						album.trackKeys[i] = key;
-						album.tracks.put(key, t);
-					}
-					mAllAlbums.put(albumKey, album);
-				}
-
-				if (trackKeys.size() > 1) {
-					Collections.shuffle(trackKeys);
-					mTrackQueue.addAll(trackKeys);
-				}
-
-				// If we're not playing something, then load something up
-				if (mMediaPlayer == null || !mMediaPlayer.isPlaying()) {
+					// Get more details (like tracks) for all the albums we
+					// parsed out of the heavy rotation
+					List<NameValuePair> getArgs = new LinkedList<NameValuePair>();
+					getArgs.add(new BasicNameValuePair("keys", keyBuffer
+							.toString()));
+					getArgs.add(new BasicNameValuePair("extras", "tracks"));
+					initAllTracksCallback();
+					mRdio.apiCall("get", getArgs, mAllTracksCallback);
+				} catch (Exception e) {
 					mGettingRotationDialog.dismiss();
-					nextTrack();
+					Log.e(TAG, "Failed to handle JSONObject: ", e);
 				}
-			} catch (Exception e) {
-				mGettingRotationDialog.dismiss();
-				Log.e(TAG, "Failed to handle JSONObject: ", e);
 			}
-		}
 
-		public void onApiFailure(String methodName, Exception e) {
-			mGettingRotationDialog.dismiss();
-			Log.e(TAG, "getAllTracks failed. ", e);
-			e.printStackTrace();
-		}
-	};
+			public void onApiFailure(String methodName, Exception e) {
+				mGettingRotationDialog.dismiss();
+				Log.e(TAG, "getRotationAlbums failed. ", e);
+				e.printStackTrace();
+			}
+		};
+	}
+
+	private void initAllTracksCallback() {
+		mAllTracksCallback = new RdioApiCallback() {
+
+			public void onApiSuccess(JSONObject result) {
+				try {
+					// (TAG, "Tracks result: " + result.toString(2));
+					result = result.getJSONObject("result"); // clever?
+					List<Track> trackKeys = new LinkedList<Track>();
+
+					// Build our list of tracks to put into the player queue
+					for (String albumKey : mAllAlbumKeys) {
+						if (!result.has(albumKey)) {
+							Log.w(TAG, "result didn't contain album key: "
+									+ albumKey);
+							continue;
+						}
+						JSONObject jAlbum = result.getJSONObject(albumKey);
+						JSONArray tracks = jAlbum.getJSONArray("tracks");
+						Log.i(TAG,
+								"Album " + albumKey + " has " + tracks.length()
+										+ " tracks");
+						Album album = new Album(albumKey, tracks.length());
+
+						for (int i = 0; i < tracks.length(); i++) {
+							JSONObject trackObject = tracks.getJSONObject(i);
+							String key = trackObject.getString("key");
+							String name = trackObject.getString("name");
+							String artist = trackObject.getString("artist");
+							String albumName = trackObject.getString("album");
+							String albumArt = trackObject.getString("icon");
+							// Log.i(TAG, "Found track: " + key + " => " +
+							// trackObject.getString("name"));
+							Track t = new Track(key, name, artist, albumName,
+									albumArt, albumKey);
+							trackKeys.add(t);
+
+							album.trackKeys[i] = key;
+							album.tracks.put(key, t);
+						}
+						mAllAlbums.put(albumKey, album);
+					}
+
+					if (trackKeys.size() > 1) {
+						Collections.shuffle(trackKeys);
+						mTrackQueue.addAll(trackKeys);
+					}
+
+					// If we're not playing something, then load something up
+					if (mMediaPlayer == null || !mMediaPlayer.isPlaying()) {
+						mGettingRotationDialog.dismiss();
+						nextTrack();
+					}
+				} catch (Exception e) {
+					mGettingRotationDialog.dismiss();
+					Log.e(TAG, "Failed to handle JSONObject: ", e);
+				}
+			}
+
+			public void onApiFailure(String methodName, Exception e) {
+				mGettingRotationDialog.dismiss();
+				Log.e(TAG, "getAllTracks failed. ", e);
+				e.printStackTrace();
+			}
+		};
+	}
 
 	private void nextTrack() {
-
 		if (mMediaPlayer != null) {
 			mMediaPlayer.stop();
 			mMediaPlayer.release();
@@ -381,11 +413,10 @@ public class GameActivity extends ListActivity implements RdioListener {
 		initLoadTrackAsyncTask();
 		mLoadTrackAsyncTask.execute(track);
 
-		Toast.makeText(
-				this,
-				String.format(getResources().getString(R.string.now_playing),
-						track.trackName, track.albumName, track.artistName),
-				Toast.LENGTH_LONG).show();
+		// Toast.makeText(this,
+		// String.format(getResources().getString(R.string.now_playing),
+		// track.trackName, track.albumName, track.artistName),
+		// Toast.LENGTH_LONG).show();
 	}
 
 	/**
@@ -397,7 +428,7 @@ public class GameActivity extends ListActivity implements RdioListener {
 		mLoadTrackAsyncTask = new AsyncTask<Track, Void, Track>() {
 
 			private ProgressDialog mProgressDialog = ProgressDialog.show(
-					GameActivity.this, "", "Loading", true);
+					GameActivity.this, "", getString(R.string.loading), true);
 
 			protected void onPreExecute() {
 				mProgressDialog.show();
@@ -414,7 +445,12 @@ public class GameActivity extends ListActivity implements RdioListener {
 								public void onCompletion(MediaPlayer mp) {
 									// time's up for current player, gets no
 									// points
-									Log.i(TAG, mPlayers.get(mCurrentPlayer).name + " has " + mPlayers.get(mCurrentPlayer).score + " points");
+									Log.i(TAG,
+											mPlayers.get(mCurrentPlayer).name
+													+ " has "
+													+ mPlayers
+															.get(mCurrentPlayer).score
+													+ " points");
 									readyNextPlayer();
 								}
 							});
@@ -452,19 +488,25 @@ public class GameActivity extends ListActivity implements RdioListener {
 							mMediaPlayer.pause();
 							mTimer.cancel();
 							mPlayers.get(mCurrentPlayer).score += mTimerScore;
-							Log.i(TAG, mPlayers.get(mCurrentPlayer).name + " has " + mPlayers.get(mCurrentPlayer).score + " points");
+							Log.i(TAG, mPlayers.get(mCurrentPlayer).name
+									+ " has "
+									+ mPlayers.get(mCurrentPlayer).score
+									+ " points");
 							readyNextPlayer();
 						} else {
 							// wrong guess, gets no points
 							mMediaPlayer.pause();
 							mTimer.cancel();
-							Log.i(TAG, mPlayers.get(mCurrentPlayer).name + " has " + mPlayers.get(mCurrentPlayer).score + " points");
+							Log.i(TAG, mPlayers.get(mCurrentPlayer).name
+									+ " has "
+									+ mPlayers.get(mCurrentPlayer).score
+									+ " points");
 							readyNextPlayer();
 						}
 					}
 				};
 				mListView.setOnItemClickListener(listener);
-				restartTimer();
+				restartTimer(mTimeLimit);
 				mProgressDialog.dismiss();
 
 				// show user dialog if they are ready
@@ -499,7 +541,8 @@ public class GameActivity extends ListActivity implements RdioListener {
 			return;
 		} else {
 			// find an unchosen random album
-			String key = mUnchosenAlbums.remove(r.nextInt(mUnchosenAlbums.size()));
+			String key = mUnchosenAlbums.remove(r.nextInt(mUnchosenAlbums
+					.size()));
 			// find a random track on those albums
 			Track randomTrack = mAllAlbums.get(key).getRandomTrack();
 			// add it to Activity's arraylist
@@ -544,19 +587,22 @@ public class GameActivity extends ListActivity implements RdioListener {
 		// do dialog here announcing winner
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Congratualations!")
-				.setMessage("Winner: " + winner.name + " Score: " + winner.score)
+				.setMessage(
+						"Winner: " + winner.name + " Score: " + winner.score)
 				.setCancelable(false)
-				.setPositiveButton("OK",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-								finish();
-								// start map activity
-							}
-						}).create().show();
+				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						cleanUpResources();
+						finish();
+						// start map activity with google maps
+						overridePendingTransition(R.anim.slide_left_incoming,
+								R.anim.slide_left_outgoing);
+					}
+				}).create().show();
 	}
 
-	private void restartTimer() {
-		mTimer = new CountDownTimer(mTimeLimit * 1000, 1000) {
+	private void restartTimer(int time) {
+		mTimer = new CountDownTimer(time * 1000, 1000) {
 
 			public void onTick(long millisUntilFinished) {
 				int secondsLeft = (int) (millisUntilFinished / 1000);
@@ -575,10 +621,12 @@ public class GameActivity extends ListActivity implements RdioListener {
 			Log.i(TAG, "Anonymous user! No more tracks to play.");
 
 			// Notify the user we're out of tracks
-			Toast.makeText(this, getString(R.string.no_more_tracks), Toast.LENGTH_LONG).show();
+			Toast.makeText(this, getString(R.string.no_more_tracks),
+					Toast.LENGTH_LONG).show();
 
 			// Then helpfully point them to the market to go install Rdio ;)
-			Intent installRdioIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=pname:com.rdio.android.ui"));
+			Intent installRdioIntent = new Intent(Intent.ACTION_VIEW,
+					Uri.parse("market://search?q=pname:com.rdio.android.ui"));
 			installRdioIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(installRdioIntent);
 
@@ -586,7 +634,8 @@ public class GameActivity extends ListActivity implements RdioListener {
 			return;
 		}
 
-		mGettingCollectionDialog = ProgressDialog.show(this, "", getString(R.string.loading), true);
+		mGettingCollectionDialog = ProgressDialog.show(this, "",
+				getString(R.string.loading), true);
 		mGettingCollectionDialog.show();
 
 		List<NameValuePair> args = new LinkedList<NameValuePair>();
@@ -607,8 +656,11 @@ public class GameActivity extends ListActivity implements RdioListener {
 						String artist = trackObject.getString("artist");
 						String album = trackObject.getString("album");
 						String albumArt = trackObject.getString("icon");
-						Log.d(TAG, "Found track: " + key + " => " + trackObject.getString("name"));
-						trackKeys.add(new Track(key, name, artist, album, albumArt, null)); // TODO potential danger
+						Log.d(TAG,
+								"Found track: " + key + " => "
+										+ trackObject.getString("name"));
+						trackKeys.add(new Track(key, name, artist, album,
+								albumArt, null)); // TODO potential danger
 					}
 					if (trackKeys.size() > 1)
 						mTrackQueue.addAll(trackKeys);
@@ -629,5 +681,39 @@ public class GameActivity extends ListActivity implements RdioListener {
 				Log.e(TAG, methodName + " failed: ", e);
 			}
 		});
+	}
+
+	/**
+	 * We override the Back button to fashion pause/quit function. Here, we ask
+	 * the user if they want to quit or resume the game through an AlertDialog
+	 */
+	public void onBackPressed() {
+		mTimer.cancel();
+		mMediaPlayer.pause();
+
+		new AlertDialog.Builder(this)
+				.setTitle("Quit Game")
+				.setMessage("Do you really want to quit?")
+				.setNegativeButton("Quit",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int whichButton) {
+								cleanUpResources();
+								finish();
+								overridePendingTransition(
+										R.anim.slide_right_incoming,
+										R.anim.slide_right_outgoing);
+							}
+						})
+				.setPositiveButton("Resume",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int whichButton) {
+								restartTimer(mTimerScore);
+								mTimer.start();
+								mMediaPlayer.start();
+								return;
+							}
+						}).create().show();
 	}
 }
