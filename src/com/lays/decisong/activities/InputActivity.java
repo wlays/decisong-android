@@ -11,7 +11,9 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -31,37 +33,35 @@ public class InputActivity extends ListActivity implements OnClickListener {
 	/** Activity tag */
 	private static final String TAG = InputActivity.class.getSimpleName();
 
-	private Context mContext;
+	private ListView mListView;
 	private AutoCompleteTextView mInput;
 
 	private ArrayList<String> mPlayers;
 	private PlayersAdapter mAdapter;
 
-	private OnEditorActionListener mListener = new OnEditorActionListener() {
-		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-			if (actionId == EditorInfo.IME_ACTION_DONE) {
-				// check that text is valid
-				String temp = mInput.getText().toString();
-				if (temp.length() > 1) {
-					mPlayers.add(temp);
-					mAdapter.notifyDataSetChanged();
-					mInput.setText("");
-					return true;
-				} else {
-					Toast.makeText(mContext, "Invalid Player Name",
-							Toast.LENGTH_SHORT).show();
-				}
-			}
-			return false;
-		}
-	};
-
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_input);
-		mContext = this;
+		mListView = getListView();
 		mInput = (AutoCompleteTextView) findViewById(R.id.auto_complete_player_input);
-		mInput.setOnEditorActionListener(mListener);
+		mInput.setOnEditorActionListener(new OnEditorActionListener() {
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				if (actionId == EditorInfo.IME_ACTION_DONE) {
+					// check that text is valid
+					String temp = mInput.getText().toString();
+					if (temp.length() > 1) {
+						mPlayers.add(temp);
+						mAdapter.notifyDataSetChanged();
+						mListView.setSelection(mAdapter.getCount());
+						mInput.setText("");
+						return true;
+					} else {
+						Toast.makeText(InputActivity.this, "Invalid Player Name", Toast.LENGTH_SHORT).show();
+					}
+				}
+				return false;
+			}
+		});
 
 		mPlayers = new ArrayList<String>();
 		mAdapter = new PlayersAdapter(this, mPlayers);
@@ -83,11 +83,13 @@ public class InputActivity extends ListActivity implements OnClickListener {
 		// check if there's more than one player
 		if (mPlayers.size() < 2) {
 			Log.i(TAG, "Only 1 player");
-			Toast.makeText(mContext, "At least 2 players needed to start game",
-					Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "At least 2 players needed to start game",Toast.LENGTH_SHORT).show();
 			return;
 		}
 
+		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(mInput.getWindowToken(), 0);
+		
 		Intent intent = new Intent(this, GameActivity.class);
 		intent.putStringArrayListExtra(DecisongApplication.PLAYERS_KEY, mPlayers);
 		startActivity(intent);

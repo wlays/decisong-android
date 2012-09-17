@@ -8,30 +8,30 @@
         android:id="@+id/current_round"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="18dp"
-        android:layout_marginTop="9dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
         android:gravity="center"
         android:text="@string/example_round"
-        android:textSize="20sp" />
+        android:textSize="28sp" />
 
     <TextView
         android:id="@+id/current_player"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="18dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:text="@string/example"
-        android:textSize="20sp"
+        android:textSize="28sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="18dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:text="@string/timer"
-        android:textSize="25sp" />
+        android:textSize="28sp" />
 
     <ListView
         android:id="@android:id/list"
