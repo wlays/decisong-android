@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
 	 */
 	public void startInstructionsActivity(View v) {
 		Intent intent = new Intent(this, InstructionsActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 		startActivity(intent);
 		overridePendingTransition(R.anim.slide_right_incoming,
 				R.anim.slide_right_outgoing);
@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
 	 */
 	public void startInputActivity(View v) {
 		Intent intent = new Intent(this, InputActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 		startActivity(intent);
 		overridePendingTransition(R.anim.slide_left_incoming,
 				R.anim.slide_left_outgoing);
@@ -49,16 +49,18 @@ public class MainActivity extends Activity {
 
 	/**
 	 * onClick handler for settings button
+	 * No settings for now...
 	 * 
 	 * @param v
 	 */
 	public void startSettingsActivity(View v) {
-		/*
-		 * if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-		 * startActivity(new Intent(this, SettingsActivity.class)); } else {
-		 * startActivity(new Intent(this, SettingsNewActivity.class)); }
-		 * overridePendingTransition(R.anim.slide_left_incoming,
-		 * R.anim.slide_left_outgoing);
-		 */
+
+//		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+//			startActivity(new Intent(this, SettingsActivity.class));
+//		} else {
+//			startActivity(new Intent(this, SettingsNewActivity.class));
+//		}
+//		overridePendingTransition(R.anim.slide_left_incoming,
+//				R.anim.slide_left_outgoing);
 	}
 }

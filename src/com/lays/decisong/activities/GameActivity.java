@@ -21,6 +21,7 @@ import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
@@ -179,7 +180,7 @@ public class GameActivity extends ListActivity {
 			startActivityForResult(authorisationIntent, REQUEST_AUTHORISE_APP);
 		} catch (ActivityNotFoundException e) {
 			// Rdio app not found
-			Log.e(TAG, "Rdio app not found, limited to 30s samples.");
+			Log.w(TAG, "Rdio app not found, limited to 30s samples.");
 		}
 	}
 
@@ -407,6 +408,7 @@ public class GameActivity extends ListActivity {
 
 		if (track == null) {
 			Log.e(TAG, "Track is null!  Size of queue: " + mTrackQueue.size());
+			finish();
 			return;
 		}
 
@@ -594,9 +596,12 @@ public class GameActivity extends ListActivity {
 					public void onClick(DialogInterface dialog, int id) {
 						cleanUpResources();
 						finish();
-						// start map activity with google maps
-						overridePendingTransition(R.anim.slide_left_incoming,
-								R.anim.slide_left_outgoing);
+						Location loc = ((DecisongApplication) getApplication()).getCurrentLocation();
+						if (loc != null) {
+							Uri uri = Uri.parse("geo:" + loc.getLatitude()  + "," + loc.getLongitude() +"?z=19&f=l&q=food&mrt=yp");
+							Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+							startActivity(intent);
+						}
 					}
 				}).create().show();
 	}

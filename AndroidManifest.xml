@@ -17,6 +17,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:name="com.lays.decisong.DecisongApplication"
@@ -24,6 +26,9 @@
         android:label="@string/app_name"
         android:screenOrientation="portrait"
         android:theme="@android:style/Theme.NoTitleBar" >
+        
+        <uses-library android:name="com.google.android.maps" />
+        
         <activity android:name=".activities.MainActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,6 +48,9 @@
         <activity
             android:name=".activities.GameActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:noHistory="true" />
+        <activity
+            android:name=".activities.MapsActivity"
             android:noHistory="true" />
     </application>
 

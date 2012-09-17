@@ -5,8 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -15,7 +19,7 @@ import com.lays.decisong.activities.GameActivity;
 import com.rdio.android.api.Rdio;
 import com.rdio.android.api.RdioListener;
 
-public class DecisongApplication extends Application implements RdioListener {
+public class DecisongApplication extends Application implements RdioListener, LocationListener {
 
 	private static final String TAG = DecisongApplication.class.getSimpleName();
 	public static final boolean DEVELOPER_MODE = true;
@@ -27,6 +31,7 @@ public class DecisongApplication extends Application implements RdioListener {
 	public static final String EXIT_INTENT_ACTION = "com.lays.decisong.ACTION_EXIT";
 
 	private static DecisongApplication mInstance;
+	private Location mCurrentLocation;
 	private static Rdio mRdio;
 	private GameActivity mCurrentGame;
 
@@ -36,6 +41,8 @@ public class DecisongApplication extends Application implements RdioListener {
 		}
 		super.onCreate();
 		mInstance = this;
+		LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 25.0f, this);
 	}
 
 	/**
@@ -109,5 +116,31 @@ public class DecisongApplication extends Application implements RdioListener {
 			mCurrentGame.onRdioUserPlayingElsewhere();
 		}
 	}
+	
+	public Location getCurrentLocation() {
+		return mCurrentLocation;
+	}
 
+	@Override
+	public void onLocationChanged(Location location) {
+		if (location != null) {
+			mCurrentLocation = location;
+			Log.i(TAG, "Latitude: " + mCurrentLocation.getLatitude() + " Longitude: " + mCurrentLocation.getLongitude());
+		}
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) {
+	
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) {
+		
+	}
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		
+	}
 }
