@@ -23,11 +23,11 @@ public class PlayerViewHolder {
     public TextView getName() {
 	return name;
     }
-    
+
     public void setCancel(ImageView cancel) {
 	this.cancel = cancel;
     }
-    
+
     public ImageView getCancel() {
 	return cancel;
     }

@@ -49,9 +49,6 @@
             android:name=".activities.GameActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:noHistory="true" />
-        <activity
-            android:name=".activities.MapsActivity"
-            android:noHistory="true" />
     </application>
 
 </manifest>

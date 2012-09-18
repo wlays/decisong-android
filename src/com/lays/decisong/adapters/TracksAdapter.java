@@ -12,7 +12,6 @@ import com.lays.decisong.activities.GameActivity;
 import com.lays.decisong.holders.TrackViewHolder;
 import com.lays.decisong.models.Track;
 
-
 public class TracksAdapter extends ArrayAdapter<Track> {
 
     /** XML layout inflater */
@@ -43,9 +42,9 @@ public class TracksAdapter extends ArrayAdapter<Track> {
 	}
 
 	Track track = mTracks.get(position);
-	holder.getAlbumArt().setImageUrl(track.albumArt);
-	holder.getAlbumArtist().setText("Artist: " + track.artistName);
-	holder.getAlbumName().setText("Album: " + track.albumName);
+	holder.getAlbumArt().setImageUrl(track.getAlbumArt());
+	holder.getAlbumArtist().setText("Artist: " + track.getArtistName());
+	holder.getAlbumName().setText("Album: " + track.getAlbumName());
 	return row;
     }
 }

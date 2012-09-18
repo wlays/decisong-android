@@ -13,15 +13,16 @@ import com.lays.decisong.R;
  */
 public class InstructionsActivity extends Activity {
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_instructions);
-	}
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+	super.onCreate(savedInstanceState);
+	setContentView(R.layout.activity_instructions);
+    }
 
-	@Override
-	public void onBackPressed() {
-		super.onBackPressed();
-		overridePendingTransition(R.anim.slide_left_incoming, R.anim.slide_left_outgoing);
-	}
+    @Override
+    public void onBackPressed() {
+	super.onBackPressed();
+	overridePendingTransition(R.anim.slide_left_incoming,
+		R.anim.slide_left_outgoing);
+    }
 }
