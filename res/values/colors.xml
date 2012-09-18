@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <color name="white">#FFFFFF</color>
     <color name="yellow">#FFFF00</color>
     <color name="fuchsia">#FF00FF</color>
@@ -16,6 +17,8 @@
     <color name="blue">#0000FF</color>
     <color name="navy">#000080</color>
     <color name="black">#000000</color>
-    <color name="decisong_dark">#284B2B</color>
-    <color name="decisong_light">#DCDBBF</color>
+    <color name="decisong_game">#ffce00</color>
+    <color name="decisong_light">#ffbc73</color>
+    <color name="decisong_light_again">#ff8500</color>
+
 </resources>

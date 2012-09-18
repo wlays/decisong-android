@@ -7,8 +7,8 @@
 
     <com.loopj.android.image.SmartImageView
         android:id="@+id/row_album_art"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_centerVertical="true"
         android:adjustViewBounds="true"
         android:contentDescription="@string/example"
@@ -29,6 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:text="@string/example"
+            android:textColor="@color/decisong_light_again"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -37,6 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/example"
+            android:textColor="@color/decisong_light_again"
             android:textSize="15sp" />
     </LinearLayout>
 

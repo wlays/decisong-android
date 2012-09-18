@@ -3,25 +3,26 @@
     <!-- Our main style for Decisong application -->
     <style name="Theme.Decisong" parent="android:Theme.Light" />
 
-    <!-- A style resource for Decisong instructions -->
-    <style name="DecisongInstruction">
-        <item name="android:textSize">18sp</item>
-		<item name="android:textColor">@color/decisong_dark</item>
-    </style>
-    
     <!-- A style resource for Decisong text -->
-    <style name="DecisongTitle">
-        <item name="android:textSize">40sp</item>
-		<item name="android:textColor">@color/decisong_dark</item>
-		<item name="android:textStyle">bold</item>
+    <style name="DecisongText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/decisong_light</item>
+        <item name="android:textStyle">bold</item>
     </style>
-    
+
+    <!-- A style resource for Decisong title -->
+    <style name="DecisongTitle">
+        <item name="android:textSize">48sp</item>
+        <item name="android:textColor">@color/decisong_light</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <!-- A style resource for Decisong buttons -->
     <style name="DecisongButton">
         <item name="android:background">@drawable/bg_decisong_button</item>
         <item name="android:paddingBottom">8dp</item>
-        <item name="android:paddingLeft">16dp</item>
-        <item name="android:paddingRight">16dp</item>
+        <item name="android:paddingLeft">18dp</item>
+        <item name="android:paddingRight">18dp</item>
         <item name="android:paddingTop">8dp</item>
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/decisong_light</item>

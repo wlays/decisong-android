@@ -7,13 +7,13 @@
     <string name="btn_new_game">New Game</string>
     <string name="btn_settings">Settings</string>
     <string name="btn_done">Start Game</string>
-	<string name="autocomplete_hint">Type to add players&#8230;</string>
-	<string name="player">Current Player</string>
+    <string name="autocomplete_hint">Type to add players&#8230;</string>
+    <string name="player">Current Player</string>
     <string name="timer">Time Left:</string>
     <string name="loading">Loading&#8230;</string>
     <string name="now_playing">Playing: %1$s from %2$s by %3$s</string>
-	<string name="no_more_tracks">Heavy rotation depleted&#8230; why not go install the Rdio app now?</string>
-	<string name="connectivity_dialog_title">Not Connected</string>
+    <string name="no_more_tracks">Heavy rotation depleted&#8230; why not go install the Rdio app now?</string>
+    <string name="connectivity_dialog_title">Not Connected</string>
     <string name="connectivity_dialog_text">Please turn on your wireless connection.</string>
     <string name="connectivity_dialog_exit">Exit</string>
     <string name="connectivity_dialog_settings">Settings</string>
@@ -22,5 +22,5 @@
     <string name="instruction_three">3. You get points according to how fast you guessed correctly.</string>
     <string name="instruction_four">4. But no points if you guessed wrongly or time\'s up.</string>
     <string name="instruction_five">5. Winner gets to decide where to eat!</string>
-    
+
 </resources>

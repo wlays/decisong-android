@@ -3,17 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="13dp" >
+    android:padding="12dp" >
 
     <TextView
         android:id="@+id/row_player_name"
+        style="@style/DecisongText"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="@string/example"
-        android:textColor="@color/decisong_dark"
-        android:textSize="18sp" />
+        android:text="@string/example" />
 
     <ImageView
         android:id="@+id/row_player_cancel"

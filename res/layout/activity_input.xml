@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_activity"
     android:orientation="vertical"
-    android:padding="8dp" >
+    android:padding="15dp" >
 
     <AutoCompleteTextView
         android:id="@+id/auto_complete_player_input"

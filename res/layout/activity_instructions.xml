@@ -7,7 +7,7 @@
     android:padding="15dp" >
 
     <TextView
-        style="@style/DecisongInstruction"
+        style="@style/DecisongText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="15dp"
@@ -15,7 +15,7 @@
         android:text="@string/instruction_one" />
 
     <TextView
-        style="@style/DecisongInstruction"
+        style="@style/DecisongText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="15dp"
@@ -23,7 +23,7 @@
         android:text="@string/instruction_two" />
 
     <TextView
-        style="@style/DecisongInstruction"
+        style="@style/DecisongText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="15dp"
@@ -31,7 +31,7 @@
         android:text="@string/instruction_three" />
 
     <TextView
-        style="@style/DecisongInstruction"
+        style="@style/DecisongText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="15dp"
@@ -39,7 +39,7 @@
         android:text="@string/instruction_four" />
 
     <TextView
-        style="@style/DecisongInstruction"
+        style="@style/DecisongText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

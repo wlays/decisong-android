@@ -38,7 +38,8 @@
         android:onClick="startInputActivity"
         android:text="@string/btn_new_game" />
 
-    <!-- no settings for now
+    <!--
+    no settings for now
 	<Button
         android:id="@+id/btn_settings"
         style="@style/DecisongButton"
@@ -49,5 +50,6 @@
         android:layout_below="@+id/btn_new_game"
         android:onClick="startSettingsActivity"
         android:text="@string/btn_settings" />
- 	-->
+    -->
+
 </RelativeLayout>

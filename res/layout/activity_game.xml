@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/decisong_game"
     android:orientation="vertical" >
 
     <TextView
@@ -12,6 +13,7 @@
         android:layout_marginTop="8dp"
         android:gravity="center"
         android:text="@string/example_round"
+        android:textColor="@color/decisong_light_again"
         android:textSize="28sp" />
 
     <TextView
@@ -21,6 +23,7 @@
         android:layout_marginBottom="8dp"
         android:gravity="center"
         android:text="@string/example"
+        android:textColor="@color/decisong_light_again"
         android:textSize="28sp"
         android:textStyle="bold" />
 
@@ -31,6 +34,7 @@
         android:layout_marginBottom="8dp"
         android:gravity="center"
         android:text="@string/timer"
+        android:textColor="@color/decisong_light_again"
         android:textSize="28sp" />
 
     <ListView
